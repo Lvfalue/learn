@@ -23,19 +23,27 @@ function sendFile(res, filePath, fileContent) {
   res.end(fileContent);
 }
 
-function serveStatic(res, cache, absPath) {
-  if(cache[absPath]) {
-    sendFile(res, absPath, cache[absPath]);
+/**
+ * @param res
+ * @param cache
+ * @param path
+ * 
+ * return cache[path] or read from path
+ */
+
+function getFile(res, cache, path) {
+  if(cache[path]) {
+    sendFile(res, path, cache[path]);
   } else {
-    fs.exists(absPath, function (exists) {
-      if(exists) {
-        fs.readFile(absPath, function (err, data) {
+    fs.stat(path, function(err, stats) {
+      if(err) {
+        send404(res);
+      } else if(stats.isFile()) {
+        fs.readFile(path, function(err, data) {
           if(err) {
             send404(res);
-          } else {
-            cache[absPath] = data;
-            sendFile(res, absPath, data);
           }
+          sendFile(res, path, cache[path] = data)
         })
       } else {
         send404(res);
@@ -43,6 +51,7 @@ function serveStatic(res, cache, absPath) {
     })
   }
 }
+
 
 /**
  * create server
@@ -58,7 +67,7 @@ var server = http.createServer(function(req, res){
   }
 
   var absPath = './' + filePath;
-  serveStatic(res, cache, absPath); 
+  getFile(res, cache, absPath); 
 })
 
 var port = 3000;
