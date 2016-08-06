@@ -39,10 +39,11 @@ function getFile(res, cache, path) {
       if(err) {
         send404(res);
       } else if(stats.isFile()) {
-        fs.readFile(path, function(err, data) {
+        fs.readFile(path, 'utf-8', function(err, data) {
           if(err) {
             send404(res);
           }
+          console.log(data)
           sendFile(res, path, cache[path] = data)
         })
       } else {
